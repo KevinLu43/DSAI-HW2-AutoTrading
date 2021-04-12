@@ -1,3 +1,4 @@
+from utils import Trader
 
 if __name__ == '__main__':
     # You should not modify this part.
@@ -17,16 +18,30 @@ if __name__ == '__main__':
     
     # The following part is an example.
     # You can modify it at will.
-    training_data = load_data(args.training)
-    trader = Trader()
-    trader.train(training_data)
-    
-    testing_data = load_data(args.testing)
-    with open(args.output, 'w') as output_file:
-        for row in testing_data:
-            # We will perform your action as the open price in the next day.
-            action = trader.predict_action(row)
-            output_file.write(action)
+    import pandas as pd
+    training_data = pd.read_csv(args.training, header=None)
+    training_data.columns = ["open","highest","lowest","close"]
+    training_data["target"] = training_data["open"][len(training_data)-1]
 
+    for i in range(len(training_data["open"])-1):
+        training_data["target"][i] = training_data["open"][i+1]
+    train_y = training_data["target"]
+    train_x = training_data[["open", "highest", "lowest", "close"]]
+    trader = Trader()
+    trader.train(train_x, train_y)
+    
+    testing_data = pd.read_csv(args.testing, header=None)
+    testing_data.columns = ["open", "highest", "lowest", "close"]
+    prediction = trader.predict(testing_data)
+    
+    threshold = 0.0005
+    output = []
+    for row in range(len(testing_data)-2):
+        # We will perform your action as the open price in the next day.
+        action = trader.predict_action(testing_data["open"][row], prediction[row], threshold)
+        output.append(action)
+    
+    pd.DataFrame(output).to_csv(args.output, index=0)
+    
             # this is your option, you can leave it empty.
-            trader.re_training(i)
+            
