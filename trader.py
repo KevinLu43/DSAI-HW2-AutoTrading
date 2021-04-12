@@ -34,14 +34,12 @@ if __name__ == '__main__':
     testing_data.columns = ["open", "highest", "lowest", "close"]
     prediction = trader.predict(testing_data)
     
-    threshold = 0.0005
+    threshold = 0.001
     output = []
-    for row in range(len(testing_data)-2):
+    for row in range(len(testing_data)-1):
         # We will perform your action as the open price in the next day.
-        action = trader.predict_action(testing_data["open"][row], prediction[row], threshold)
+        action = trader.predict_action(prediction[row], prediction[row+1], threshold)
         output.append(action)
     
-    pd.DataFrame(output).to_csv(args.output, index=0)
+    pd.DataFrame(output).to_csv(args.output, index=0, header=0)
     
-            # this is your option, you can leave it empty.
-            
