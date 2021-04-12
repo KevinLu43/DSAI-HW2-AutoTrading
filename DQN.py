@@ -150,8 +150,8 @@ class Net(nn.Module):
 
 
 class DQN(object):
-    def __init__(self):
-        self.eval_net, self.target_net = Net(), Net()
+    def __init__(self, n_states, n_actions, n_hidden):
+        self.eval_net, self.target_net = Net(n_states, n_actions, n_hidden), Net(n_states, n_actions, n_hidden)
 
         self.learn_step_counter = 0                                     # for target updating
         self.memory_counter = 0                                         # for storing memory
@@ -161,7 +161,7 @@ class DQN(object):
         
 
     def choose_action(self, x):
-        x = torch.unsqueeze(torch.FloatTensor(x), 0)
+        x = torch.unsqueeze(torch.Tensor(x), 0)
         # input only one sample
         if np.random.uniform() < epsilon:   # greedy
             actions_value = self.eval_net.forward(x)
@@ -221,8 +221,9 @@ new = Preprocess(df).past()
 print(State(Environment(new).render()[0]).action_sample())
 
 env = Environment(new)
-dqn = DQN()
 n_states = len(env.render())
+n_actions = 0
+dqn = DQN(n_states, n_actions, n_hidden)
 
 print('\nCollecting experience...')
 for i_episode in range(400):
@@ -233,21 +234,15 @@ for i_episode in range(400):
         action = dqn.choose_action(state)
 
         # take action
-        reward, now_state = env.step(action, state)
-        dqn.store_transition(state, action, reward, now_state)
+        reward, new_state = env.step(action, state)
+        dqn.store_transition(state, action, reward, new_state)
 
         reward_t += reward
-        state = State.update(now_state) 
+        
         
 
-        if dqn.memory_counter < memory_capacity:
+        if dqn.memory_counter > memory_capacity:
             dqn.learn()
-            if :
-                print('Ep: ', i_episode,
-                      '| Ep_r: ', round(reward_t, 2))
+            print('Ep: ', i_episode,
+                '| Ep_r: ', round(reward_t, 2))
 
-        if 
-            break
-        
-
-"""
